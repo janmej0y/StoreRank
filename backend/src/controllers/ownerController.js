@@ -1,5 +1,6 @@
 const prisma = require('../config/prisma');
 const asyncHandler = require('../utils/asyncHandler');
+const ApiError = require('../utils/ApiError');
 const { buildTrend } = require('../utils/trends');
 const { buildDateRangeFilter } = require('../utils/dateRange');
 
@@ -55,11 +56,15 @@ const dashboard = asyncHandler(async (req, res) => {
       : null;
 
   const raters = ratings.map((r) => ({
+    ratingId: r.id,
     userId: r.user.id,
     name: r.user.name,
     email: r.user.email,
     rating: r.rating,
+    comment: r.comment,
     ratedAt: r.updatedAt,
+    ownerResponse: r.ownerResponse,
+    ownerRespondedAt: r.ownerRespondedAt,
   }));
 
   const ratingsTrend = buildTrend(
@@ -76,4 +81,55 @@ const dashboard = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { dashboard };
+const respondToRating = asyncHandler(async (req, res) => {
+  const ratingId = req.params.id;
+  const { response } = req.body;
+  const ownerId = req.user.id;
+
+  const rating = await prisma.rating.findUnique({
+    where: { id: ratingId },
+    include: { store: { select: { ownerId: true } } },
+  });
+
+  if (!rating || rating.store.ownerId !== ownerId) {
+    throw new ApiError(404, 'Review not found');
+  }
+
+  const updated = await prisma.rating.update({
+    where: { id: ratingId },
+    data: {
+      ownerResponse: response || null,
+      ownerRespondedAt: response ? new Date() : null,
+    },
+  });
+
+  res.json({
+    ratingId: updated.id,
+    ownerResponse: updated.ownerResponse,
+    ownerRespondedAt: updated.ownerRespondedAt,
+  });
+});
+
+const updateStore = asyncHandler(async (req, res) => {
+  const ownerId = req.user.id;
+  const { name, email, address } = req.body;
+
+  const store = await prisma.store.findFirst({ where: { ownerId } });
+  if (!store) {
+    throw new ApiError(404, 'No store is linked to your account');
+  }
+
+  const updated = await prisma.store.update({
+    where: { id: store.id },
+    data: { name, email, address },
+  });
+
+  res.json({
+    id: updated.id,
+    name: updated.name,
+    email: updated.email,
+    address: updated.address,
+  });
+});
+
+module.exports = { dashboard, respondToRating, updateStore };

@@ -4,7 +4,7 @@
 
 **A full-stack store ratings platform.**
 
-Users browse registered stores and submit ratings. Store owners track how their store is performing. Administrators manage the entire catalog from a dashboard.
+Users browse registered stores and submit ratings. Store owners track how their store is performing and respond to reviews. Administrators manage the entire catalog from a dashboard.
 
 [![Node](https://img.shields.io/badge/Node-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![Express](https://img.shields.io/badge/Express-000000?logo=express&logoColor=white)](https://expressjs.com)
@@ -13,15 +13,25 @@ Users browse registered stores and submit ratings. Store owners track how their 
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-Frontend-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![License](https://img.shields.io/badge/License-Unlicensed-lightgrey)]()
 
 </div>
+
+<br>
+
+<p align="center">
+  <a href="#quick-start"><b>Quick start</b></a> ·
+  <a href="#roles--features"><b>Roles &amp; features</b></a> ·
+  <a href="#api-overview"><b>API</b></a> ·
+  <a href="#deploying"><b>Deploying</b></a>
+</p>
 
 <br>
 
 ## Contents
 
 - [Overview](#overview)
-- [Roles](#roles)
+- [Roles &amp; features](#roles--features)
 - [Prerequisites](#prerequisites)
 - [Quick start](#quick-start)
 - [Backend setup](#backend-setup)
@@ -37,29 +47,83 @@ Users browse registered stores and submit ratings. Store owners track how their 
 
 ## Overview
 
-Monorepo layout:
+<table>
+<tr>
+<td valign="top" width="50%">
+
+**Monorepo layout**
 
 ```
-backend/    Express API · Prisma ORM · PostgreSQL
-frontend/   React (Vite) SPA · React Router · Axios · Tailwind CSS
+backend/    Express API
+            Prisma ORM
+            PostgreSQL
+frontend/   React (Vite) SPA
+            React Router
+            Axios
+            Tailwind CSS
 ```
 
-| Layer | Stack |
+</td>
+<td valign="top" width="50%">
+
+**Stack**
+
+| Layer | Technology |
 |---|---|
-| **Backend** | Express.js, PostgreSQL via Prisma ORM, JWT auth, bcrypt password hashing, express-validator |
-| **Frontend** | React 18 (Vite), React Router 6, Axios, Tailwind CSS, react-hot-toast |
+| API | Express.js |
+| Database | PostgreSQL + Prisma ORM |
+| Auth | JWT + bcrypt |
+| Validation | express-validator |
+| UI | React 18, Vite, Tailwind CSS |
+| Routing | React Router 6 |
+| HTTP | Axios |
+| Toasts | react-hot-toast |
+
+</td>
+</tr>
+</table>
 
 <br>
 
-## Roles
+## Roles &amp; features
 
-| Role | Capabilities |
-|---|---|
-| 🛡️ **System Administrator** | Create users/stores/admins, view platform dashboard, browse/filter/sort all users and stores, view user detail (incl. owner's store rating) |
-| 👤 **Normal User** | Register, browse/search/sort stores, submit or update a 1–5 rating per store |
-| 🏪 **Store Owner** | View a dashboard of everyone who rated their store and the store's average rating |
+<table>
+<tr>
+<td valign="top" width="33%">
 
-All three roles share a single login (`POST /api/auth/login`) and can change their own password. Only **Normal Users** can self-register — Admins and Store Owners are provisioned by an Administrator via **Admin → Users → Add user**.
+### 🛡️ Administrator
+
+- Platform-wide dashboard: totals, recent activity, top-rated stores
+- Create users of any role and stores (with optional owner assignment)
+- Browse/filter/sort all users and stores, paginated
+- View any user's detail page, incl. an owner's store rating
+- Activate/deactivate users and stores (soft delete)
+
+</td>
+<td valign="top" width="33%">
+
+### 👤 Normal User
+
+- Self-registration
+- Browse, search, and sort all active stores
+- Submit or update a 1–5 rating with an optional written review
+- View a store's full rating distribution and every review left on it
+
+</td>
+<td valign="top" width="33%">
+
+### 🏪 Store Owner
+
+- Dashboard: average rating, total ratings, live 7-day trend chart
+- Read every customer review, including written comments
+- **Respond publicly to any review** — reply shows under the review
+- **Edit their own store's** name, email, and address
+
+</td>
+</tr>
+</table>
+
+All three roles share one login (`POST /api/auth/login`) and can change their own password. Only **Normal Users** self-register — Admins and Store Owners are provisioned by an Administrator via **Admin → Users → Add user**.
 
 <br>
 
@@ -69,7 +133,7 @@ All three roles share a single login (`POST /api/auth/login`) and can change the
 - **PostgreSQL 14+** — a local install, the provided `docker-compose.yml`, or a managed provider such as [Supabase](https://supabase.com)
 
 <details>
-<summary><strong>Postgres options</strong></summary>
+<summary><strong>Postgres options</strong> (click to expand)</summary>
 <br>
 
 - **Docker:**
@@ -110,7 +174,7 @@ npm install
 npm run dev              # → http://localhost:5173
 ```
 
-Sign in with the [seeded admin account](#seeded-credentials), or use the **"Admin Login" / "Store Owner Login"** demo buttons on the login page.
+> Sign in with the [seeded admin account](#seeded-credentials), or use the **"Admin Login" / "Store Owner Login"** demo buttons on the login page.
 
 <br>
 
@@ -121,7 +185,7 @@ cd backend
 cp .env.example .env        # fill in DATABASE_URL / DIRECT_URL / JWT_SECRET
 npm install
 npx prisma generate         # regenerate the client if you changed the schema/env
-npx prisma migrate deploy   # applies the SQL migration in prisma/migrations
+npx prisma migrate deploy   # applies committed migrations from prisma/migrations
 npm run seed                # creates the admin account, sample stores/owners/users/ratings
 npm run dev                 # starts the API on http://localhost:5000
 ```
@@ -185,11 +249,11 @@ Vercel serves the frontend well but doesn't run a persistent Express server or h
 | **Render** (or Railway) | `backend/` | Set **Root Directory** to `backend`; build with `npm install && npx prisma generate && npx prisma migrate deploy`; start with `npm start` |
 | **Supabase** | PostgreSQL | Use the pooled/direct connection strings from [Prerequisites](#prerequisites) |
 
-Env vars to double-check on each platform:
-
-- **Vercel** → `VITE_API_URL` = your Render URL **with** `/api` appended (e.g. `https://storerank-api.onrender.com/api`)
-- **Render** → `CLIENT_ORIGIN` = your Vercel URL with **no trailing slash** (e.g. `https://storerank.vercel.app`) — a trailing slash silently breaks CORS
-- Both platforms bake env vars in at build time for a Vite app — redeploy after changing `VITE_API_URL`, a page refresh alone won't pick it up
+> [!IMPORTANT]
+> **Env vars to double-check on each platform:**
+> - **Vercel** → `VITE_API_URL` = your Render URL **with** `/api` appended (e.g. `https://storerank-api.onrender.com/api`)
+> - **Render** → `CLIENT_ORIGIN` = your Vercel URL with **no trailing slash** (e.g. `https://storerank.vercel.app`) — a trailing slash silently breaks CORS
+> - Both platforms bake env vars in at build time for a Vite app — **redeploy** after changing `VITE_API_URL`; a page refresh alone won't pick it up
 
 Render's free tier sleeps after ~15 minutes of inactivity and takes 30–60s to wake — expect a slow first request after idle time.
 
@@ -201,14 +265,25 @@ Render's free tier sleeps after ~15 minutes of inactivity and takes 30–60s to 
 |---|---|---|
 | **users** | `id, name, email (unique), password_hash, address, role (ADMIN\|USER\|OWNER), is_active, created_at, updated_at` | Indexed on `email`, `role` |
 | **stores** | `id, name, email, address, owner_id (FK → users, nullable, ON DELETE SET NULL), is_active, created_at, updated_at` | Indexed on `owner_id`, `name`, `email` |
-| **ratings** | `id, user_id (FK → users, ON DELETE CASCADE), store_id (FK → stores, ON DELETE CASCADE), rating (CHECK 1–5), comment (optional, ≤500 chars), created_at, updated_at` | Unique on `(user_id, store_id)` — a rating is created once, then upserted on resubmission. Indexed on `store_id`, `user_id` |
+| **ratings** | `id, user_id (FK → users, ON DELETE CASCADE), store_id (FK → stores, ON DELETE CASCADE), rating (CHECK 1–5), comment (≤500 chars), owner_response (≤500 chars), owner_responded_at, created_at, updated_at` | Unique on `(user_id, store_id)` — a rating is created once, then upserted on resubmission. Indexed on `store_id`, `user_id` |
 
 A store's overall rating and an owner's store rating are always computed **live** via `AVG(ratings.rating)` — there is no stale stored average column.
 
 `is_active` implements soft delete/deactivate for users and stores: an admin can deactivate either from the UI. Deactivated users are blocked at login (and mid-session, since the auth middleware re-checks on every request); deactivated stores disappear from the normal-user store list but stay visible — flagged — in the admin store list. **Nothing is hard-deleted**, so rating history is always preserved.
 
-Full DDL: [`20260717000000_init/migration.sql`](backend/prisma/migrations/20260717000000_init/migration.sql) · [`20260717120000_add_soft_delete_and_comments/migration.sql`](backend/prisma/migrations/20260717120000_add_soft_delete_and_comments/migration.sql)
+<details>
+<summary><strong>Migration history</strong></summary>
+<br>
+
+| Migration | Adds |
+|---|---|
+| [`20260717000000_init`](backend/prisma/migrations/20260717000000_init/migration.sql) | Initial `users`, `stores`, `ratings` tables |
+| [`20260717120000_add_soft_delete_and_comments`](backend/prisma/migrations/20260717120000_add_soft_delete_and_comments/migration.sql) | `is_active` on users/stores, `comment` on ratings |
+| [`20260719112324_add_owner_response`](backend/prisma/migrations/20260719112324_add_owner_response/migration.sql) | `owner_response`, `owner_responded_at` on ratings |
+
 Prisma schema: [`backend/prisma/schema.prisma`](backend/prisma/schema.prisma)
+
+</details>
 
 <br>
 
@@ -216,13 +291,24 @@ Prisma schema: [`backend/prisma/schema.prisma`](backend/prisma/schema.prisma)
 
 All endpoints are prefixed with `/api`. Protected routes require `Authorization: Bearer <token>`.
 
+<details open>
+<summary><strong>Auth</strong></summary>
+
 | Method | Path | Access | Description |
 |---|---|---|---|
 | `POST` | `/auth/register` | Public | Register a Normal User |
 | `POST` | `/auth/login` | Public | Log in, returns JWT + user |
 | `GET` | `/auth/me` | Authenticated | Current user profile |
 | `PATCH` | `/auth/password` | Authenticated | Change password |
-| `GET` | `/admin/dashboard` | Admin | Total users / stores / ratings |
+
+</details>
+
+<details open>
+<summary><strong>Admin</strong></summary>
+
+| Method | Path | Access | Description |
+|---|---|---|---|
+| `GET` | `/admin/dashboard` | Admin | Totals, recent activity, top-rated stores |
 | `GET` | `/admin/users` | Admin | List users — `?name=&email=&address=&role=&sortBy=&order=&page=&pageSize=` |
 | `POST` | `/admin/users` | Admin | Create a user (any role) |
 | `GET` | `/admin/users/:id` | Admin | User detail (+ store rating if OWNER) |
@@ -230,17 +316,37 @@ All endpoints are prefixed with `/api`. Protected routes require `Authorization:
 | `GET` | `/admin/stores` | Admin | List stores — `?name=&email=&address=&sortBy=&order=&page=&pageSize=` |
 | `POST` | `/admin/stores` | Admin | Create a store, optionally assigning an owner |
 | `PATCH` | `/admin/stores/:id/status` | Admin | Activate/deactivate a store (`{ isActive }`) |
+
+</details>
+
+<details open>
+<summary><strong>Stores &amp; ratings</strong></summary>
+
+| Method | Path | Access | Description |
+|---|---|---|---|
 | `GET` | `/stores` | Normal User | Browse active stores — `?name=&address=&sortBy=&order=&page=&pageSize=`, includes the caller's own rating |
 | `GET` | `/stores/:id` | Normal User, Admin | Store detail: average, 1★–5★ distribution, and all reviews (name, rating, comment) |
 | `POST` | `/stores/:id/rating` | Normal User | Upsert a 1–5 rating for a store, with an optional comment (≤500 chars) |
-| `GET` | `/owner/dashboard` | Store Owner | Own store's raters + average — `?sortBy=&order=` |
 
-`GET /admin/dashboard` additionally returns `recentRatings` (last 5 ratings platform-wide) and `topStores` (top 5 by average, minimum 2 ratings) for the dashboard's activity feed and leaderboard widgets.
+</details>
+
+<details open>
+<summary><strong>Store Owner</strong></summary>
+
+| Method | Path | Access | Description |
+|---|---|---|---|
+| `GET` | `/owner/dashboard` | Store Owner | Own store's reviews, average rating, and 7-day ratings trend — `?sortBy=&order=&ratedFrom=&ratedTo=` |
+| `PATCH` | `/owner/ratings/:id/response` | Store Owner | Reply to (or clear a reply on) a review on their own store (`{ response }`) |
+| `PATCH` | `/owner/store` | Store Owner | Update their own store's name, email, and address |
+
+</details>
+
+`GET /admin/dashboard` additionally returns `recentRatings` (last 5 ratings platform-wide) and `topStores` (top 5 by average, minimum 2 ratings). `GET /owner/dashboard` returns `ratingsTrend` (a 7-day daily bucket series with a week-over-week delta) for the trend chart.
 
 Pagination follows a shared response shape:
 
 ```json
-{ "items": [...], "pagination": { "page": 1, "pageSize": 10, "total": 42, "totalPages": 5 } }
+{ "items": [ ], "pagination": { "page": 1, "pageSize": 10, "total": 42, "totalPages": 5 } }
 ```
 
 `page` defaults to `1`, `pageSize` defaults to `10` (capped at `50`).
@@ -260,6 +366,7 @@ Enforced identically on the client ([`frontend/src/utils/validators.js`](fronten
 | **Password** | 8–16 characters, at least one uppercase letter and one special character |
 | **Email** | Standard email format |
 | **Rating** | Integer 1–5 |
+| **Review comment / owner response** | Optional, up to 500 characters |
 
 <br>
 
@@ -272,11 +379,16 @@ Enforced identically on the client ([`frontend/src/utils/validators.js`](fronten
 - **Design system:** a neutral "ink" gray scale with a warm amber/blue accent, Inter typeface, a 4/8px spacing scale, and restrained borders/shadows instead of heavy card shadows — intentionally avoiding gradient-heavy "AI generated" styling.
 - **Store owner without an assigned store:** the Owner Dashboard renders an explicit empty state rather than erroring.
 - **Delete vs. deactivate:** users and stores are never hard-deleted from the admin UI — deactivating preserves rating history and referential integrity, and an admin can reactivate at any time.
-- **Rating distribution chart:** the store detail page renders the 1★–5★ breakdown as plain CSS bars rather than pulling in a charting library, keeping the bundle small and the visual language consistent with the rest of the design system.
+- **Rating distribution chart:** the store detail page renders the 1★–5★ breakdown as plain CSS bars rather than pulling in a charting library, keeping the bundle small; the Owner Dashboard's ratings trend, which genuinely needs a time series, reuses the Recharts dependency already pulled in for the admin dashboard's pie chart rather than adding a second charting library.
+- **Owner responses:** stored as a single `owner_response` column directly on the `Rating` row (one response per review, mirroring how `comment` already works) rather than a separate table — there's no scenario in this app where a review has more than one owner reply.
 
 <br>
 
 ## Project scripts
+
+<table>
+<tr>
+<td valign="top" width="50%">
 
 **Backend** (`backend/package.json`)
 
@@ -285,9 +397,12 @@ Enforced identically on the client ([`frontend/src/utils/validators.js`](fronten
 | `npm run dev` | Start with nodemon |
 | `npm start` | Start (production) |
 | `npm run prisma:migrate` | Create/apply a dev migration |
-| `npm run prisma:deploy` | Apply committed migrations (use this in setup/CI) |
+| `npm run prisma:deploy` | Apply committed migrations (use in setup/CI) |
 | `npm run seed` | Run the seed script |
 | `npm run prisma:studio` | Open Prisma Studio |
+
+</td>
+<td valign="top" width="50%">
 
 **Frontend** (`frontend/package.json`)
 
@@ -296,6 +411,10 @@ Enforced identically on the client ([`frontend/src/utils/validators.js`](fronten
 | `npm run dev` | Start Vite dev server |
 | `npm run build` | Production build to `dist/` |
 | `npm run preview` | Preview the production build |
+
+</td>
+</tr>
+</table>
 
 <br>
 
