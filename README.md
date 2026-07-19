@@ -3,6 +3,7 @@
 # ⭐ StoreRank
 
 **A full-stack store ratings platform.**
+
 Users browse registered stores and submit ratings. Store owners track how their store is performing. Administrators manage the entire catalog from a dashboard.
 
 [![Node](https://img.shields.io/badge/Node-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
@@ -15,7 +16,7 @@ Users browse registered stores and submit ratings. Store owners track how their 
 
 </div>
 
----
+<br>
 
 ## Contents
 
@@ -25,13 +26,14 @@ Users browse registered stores and submit ratings. Store owners track how their 
 - [Quick start](#quick-start)
 - [Backend setup](#backend-setup)
 - [Frontend setup](#frontend-setup)
+- [Deploying](#deploying)
 - [Database schema](#database-schema)
 - [API overview](#api-overview)
 - [Form validation rules](#form-validation-rules)
 - [Design notes / decisions](#design-notes--decisions-made-where-the-spec-left-room)
 - [Project scripts](#project-scripts)
 
----
+<br>
 
 ## Overview
 
@@ -47,7 +49,7 @@ frontend/   React (Vite) SPA · React Router · Axios · Tailwind CSS
 | **Backend** | Express.js, PostgreSQL via Prisma ORM, JWT auth, bcrypt password hashing, express-validator |
 | **Frontend** | React 18 (Vite), React Router 6, Axios, Tailwind CSS, react-hot-toast |
 
----
+<br>
 
 ## Roles
 
@@ -59,7 +61,7 @@ frontend/   React (Vite) SPA · React Router · Axios · Tailwind CSS
 
 All three roles share a single login (`POST /api/auth/login`) and can change their own password. Only **Normal Users** can self-register — Admins and Store Owners are provisioned by an Administrator via **Admin → Users → Add user**.
 
----
+<br>
 
 ## Prerequisites
 
@@ -68,7 +70,6 @@ All three roles share a single login (`POST /api/auth/login`) and can change the
 
 <details>
 <summary><strong>Postgres options</strong></summary>
-
 <br>
 
 - **Docker:**
@@ -85,7 +86,7 @@ All three roles share a single login (`POST /api/auth/login`) and can change the
 
 </details>
 
----
+<br>
 
 ## Quick start
 
@@ -109,19 +110,19 @@ npm install
 npm run dev              # → http://localhost:5173
 ```
 
-Then sign in with the [seeded admin account](#seeded-credentials), or use the **"Demo as Admin" / "Demo as Store Owner"** buttons on the login page.
+Sign in with the [seeded admin account](#seeded-credentials), or use the **"Admin Login" / "Store Owner Login"** demo buttons on the login page.
 
----
+<br>
 
 ## Backend setup
 
 ```bash
 cd backend
-cp .env.example .env      # fill in DATABASE_URL / DIRECT_URL / JWT_SECRET
+cp .env.example .env        # fill in DATABASE_URL / DIRECT_URL / JWT_SECRET
 npm install
 npx prisma generate         # regenerate the client if you changed the schema/env
-npx prisma migrate deploy # applies the SQL migration in prisma/migrations
-npm run seed               # creates the admin account, sample stores/owners/users/ratings
+npx prisma migrate deploy   # applies the SQL migration in prisma/migrations
+npm run seed                # creates the admin account, sample stores/owners/users/ratings
 npm run dev                 # starts the API on http://localhost:5000
 ```
 
@@ -137,7 +138,7 @@ npm run dev                 # starts the API on http://localhost:5000
 | `NODE_ENV` | `development` \| `production` | `development` |
 | `JWT_SECRET` | Secret used to sign access tokens — **change this** | — |
 | `JWT_EXPIRES_IN` | Access token lifetime | `1d` |
-| `CLIENT_ORIGIN` | Allowed CORS origin (the frontend URL) | `http://localhost:5173` |
+| `CLIENT_ORIGIN` | Allowed CORS origin (the frontend URL, **no trailing slash**) | `http://localhost:5173` |
 
 ### Seeded credentials
 
@@ -153,15 +154,15 @@ npm run dev                 # starts the API on http://localhost:5000
 | Normal User | `normal.user.number.one@storerank.com` | `User@1234` |
 | Normal User (India) | `ananya.iyer@storerank.com` | `User@1234` |
 
-The Login page also has one-click **"Demo as Admin"** / **"Demo as Store Owner"** buttons so recruiters can explore without typing credentials.
+The Login page also has one-click **"Admin Login"** / **"Store Owner Login"** buttons so recruiters can explore without typing credentials.
 
----
+<br>
 
 ## Frontend setup
 
 ```bash
 cd frontend
-cp .env.example .env      # points at the backend API, defaults to http://localhost:5000/api
+cp .env.example .env        # points at the backend API, defaults to http://localhost:5000/api
 npm install
 npm run dev                 # starts the SPA on http://localhost:5173
 ```
@@ -170,9 +171,29 @@ npm run dev                 # starts the SPA on http://localhost:5173
 
 | Variable | Description | Default |
 |---|---|---|
-| `VITE_API_URL` | Base URL of the backend API | `http://localhost:5000/api` |
+| `VITE_API_URL` | Base URL of the backend API (must include `/api`) | `http://localhost:5000/api` |
 
----
+<br>
+
+## Deploying
+
+Vercel serves the frontend well but doesn't run a persistent Express server or host Postgres — split the deploy across three services:
+
+| Service | Hosts | Notes |
+|---|---|---|
+| **Vercel** | `frontend/` | Set **Root Directory** to `frontend`; Vite preset is auto-detected |
+| **Render** (or Railway) | `backend/` | Set **Root Directory** to `backend`; build with `npm install && npx prisma generate && npx prisma migrate deploy`; start with `npm start` |
+| **Supabase** | PostgreSQL | Use the pooled/direct connection strings from [Prerequisites](#prerequisites) |
+
+Env vars to double-check on each platform:
+
+- **Vercel** → `VITE_API_URL` = your Render URL **with** `/api` appended (e.g. `https://storerank-api.onrender.com/api`)
+- **Render** → `CLIENT_ORIGIN` = your Vercel URL with **no trailing slash** (e.g. `https://storerank.vercel.app`) — a trailing slash silently breaks CORS
+- Both platforms bake env vars in at build time for a Vite app — redeploy after changing `VITE_API_URL`, a page refresh alone won't pick it up
+
+Render's free tier sleeps after ~15 minutes of inactivity and takes 30–60s to wake — expect a slow first request after idle time.
+
+<br>
 
 ## Database schema
 
@@ -189,7 +210,7 @@ A store's overall rating and an owner's store rating are always computed **live*
 Full DDL: [`20260717000000_init/migration.sql`](backend/prisma/migrations/20260717000000_init/migration.sql) · [`20260717120000_add_soft_delete_and_comments/migration.sql`](backend/prisma/migrations/20260717120000_add_soft_delete_and_comments/migration.sql)
 Prisma schema: [`backend/prisma/schema.prisma`](backend/prisma/schema.prisma)
 
----
+<br>
 
 ## API overview
 
@@ -226,7 +247,7 @@ Pagination follows a shared response shape:
 
 Validation failures return `400` with `{ message, errors: { field: message } }`. Auth/permission failures return `401`/`403`. All errors flow through a single centralized error handler ([`backend/src/middleware/errorHandler.js`](backend/src/middleware/errorHandler.js)).
 
----
+<br>
 
 ## Form validation rules
 
@@ -240,7 +261,7 @@ Enforced identically on the client ([`frontend/src/utils/validators.js`](fronten
 | **Email** | Standard email format |
 | **Rating** | Integer 1–5 |
 
----
+<br>
 
 ## Design notes / decisions made where the spec left room
 
@@ -253,7 +274,7 @@ Enforced identically on the client ([`frontend/src/utils/validators.js`](fronten
 - **Delete vs. deactivate:** users and stores are never hard-deleted from the admin UI — deactivating preserves rating history and referential integrity, and an admin can reactivate at any time.
 - **Rating distribution chart:** the store detail page renders the 1★–5★ breakdown as plain CSS bars rather than pulling in a charting library, keeping the bundle small and the visual language consistent with the rest of the design system.
 
----
+<br>
 
 ## Project scripts
 
@@ -276,6 +297,8 @@ Enforced identically on the client ([`frontend/src/utils/validators.js`](fronten
 | `npm run build` | Production build to `dist/` |
 | `npm run preview` | Preview the production build |
 
+<br>
+
 <div align="center">
 
 ---
@@ -283,5 +306,3 @@ Enforced identically on the client ([`frontend/src/utils/validators.js`](fronten
 Built with Express, Prisma, PostgreSQL, React, and Tailwind CSS.
 
 </div>
-#   S t o r e R a n k  
- 
