@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+  OWNER
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(60)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash")
+  address      String   @db.VarChar(400)
+  role         Role     @default(USER)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  stores  Store[]  @relation("StoreOwner")
+  ratings Rating[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Store {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(60)
+  email     String   @db.VarChar(255)
+  address   String   @db.VarChar(400)
+  ownerId   Int?     @map("owner_id")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  owner   User?    @relation("StoreOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  ratings Rating[]
+
+  @@index([ownerId])
+  @@index([name])
+  @@index([email])
+  @@map("stores")
+}
+
+model Rating {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  storeId   Int      @map("store_id")
+  rating    Int
+  comment   String?  @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, storeId])
+  @@index([storeId])
+  @@index([userId])
+  @@map("ratings")
+}
