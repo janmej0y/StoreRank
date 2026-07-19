@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Menu, ChevronDown, LogOut } from 'lucide-react';
+import { Bell, Menu, ChevronDown, LogOut, Store, UserPlus, Star, PartyPopper } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const ROLE_RING = {
@@ -11,19 +11,40 @@ const ROLE_RING = {
 
 const ROLE_LABEL = { ADMIN: 'Admin', OWNER: 'Store Owner', USER: 'Normal User' };
 
+const NOTIFICATIONS_BY_ROLE = {
+  ADMIN: [
+    { icon: Store, text: 'A new store was just registered on the platform.', time: '2h ago' },
+    { icon: UserPlus, text: 'Several new users joined this week.', time: '1d ago' },
+  ],
+  OWNER: [
+    { icon: Star, text: 'You received a new rating on your store.', time: '3h ago' },
+    { icon: Star, text: 'Someone left a review on your store.', time: '1d ago' },
+  ],
+  USER: [
+    { icon: PartyPopper, text: 'Welcome to StoreRank! Start rating stores near you.', time: 'Just now' },
+  ],
+};
+
 export default function Navbar({ onOpenMobileMenu }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const menuRef = useRef(null);
+  const notifRef = useRef(null);
+  const notifications = (user && NOTIFICATIONS_BY_ROLE[user.role]) || [];
 
   useEffect(() => {
-    if (!menuOpen) return undefined;
+    if (!menuOpen && !notifOpen) return undefined;
     const onClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+      if (menuOpen && menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+      if (notifOpen && notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
     };
     const onKey = (e) => {
-      if (e.key === 'Escape') setMenuOpen(false);
+      if (e.key === 'Escape') {
+        setMenuOpen(false);
+        setNotifOpen(false);
+      }
     };
     document.addEventListener('mousedown', onClickOutside);
     document.addEventListener('keydown', onKey);
@@ -31,7 +52,7 @@ export default function Navbar({ onOpenMobileMenu }) {
       document.removeEventListener('mousedown', onClickOutside);
       document.removeEventListener('keydown', onKey);
     };
-  }, [menuOpen]);
+  }, [menuOpen, notifOpen]);
 
   const handleLogout = () => {
     setMenuOpen(false);
@@ -51,20 +72,64 @@ export default function Navbar({ onOpenMobileMenu }) {
       </button>
 
       <div className="flex flex-1 items-center justify-end gap-3">
-        <button
-          type="button"
-          className="relative flex h-9 w-9 items-center justify-center rounded-input text-ink-500 hover:bg-ink-100 hover:text-ink-800"
-          aria-label="Notifications"
-        >
-          <Bell size={18} strokeWidth={2} />
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-accent-500" />
-        </button>
+        <div className="relative" ref={notifRef}>
+          <button
+            type="button"
+            onClick={() => {
+              setNotifOpen((v) => !v);
+              setMenuOpen(false);
+            }}
+            aria-haspopup="menu"
+            aria-expanded={notifOpen}
+            className="relative flex h-9 w-9 items-center justify-center rounded-input text-ink-500 hover:bg-ink-100 hover:text-ink-800"
+            aria-label="Notifications"
+          >
+            <Bell size={18} strokeWidth={2} />
+            {notifications.length > 0 && (
+              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-accent-500" />
+            )}
+          </button>
+
+          {notifOpen && (
+            <div
+              role="menu"
+              className="absolute right-0 top-[calc(100%+8px)] z-30 w-72 overflow-hidden rounded-input border border-ink-200 bg-white shadow-dropdown"
+            >
+              <div className="border-b border-ink-100 px-3.5 py-3">
+                <p className="text-sm font-semibold text-ink-900">Notifications</p>
+              </div>
+              {notifications.length === 0 ? (
+                <p className="px-3.5 py-4 text-caption text-ink-400">You're all caught up.</p>
+              ) : (
+                <ul>
+                  {notifications.map((n, i) => {
+                    const Icon = n.icon;
+                    return (
+                      <li key={i} className="flex items-start gap-2.5 border-b border-ink-100 px-3.5 py-3 last:border-0">
+                        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary-50 text-secondary-600">
+                          <Icon size={15} strokeWidth={2} />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-caption text-ink-700">{n.text}</p>
+                          <p className="mt-0.5 text-caption text-ink-400">{n.time}</p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
 
         {user && (
           <div className="relative" ref={menuRef}>
             <button
               type="button"
-              onClick={() => setMenuOpen((v) => !v)}
+              onClick={() => {
+                setMenuOpen((v) => !v);
+                setNotifOpen(false);
+              }}
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               className="flex items-center gap-2.5 rounded-input border-l border-ink-100 py-1.5 pl-3 pr-1.5 hover:bg-ink-50"

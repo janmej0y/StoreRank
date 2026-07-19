@@ -20,11 +20,11 @@ const TABS_BY_ROLE = {
   ],
 };
 
-export default function BottomNav() {
+export default function BottomNav({ hidden }) {
   const { user } = useAuth();
   const location = useLocation();
 
-  if (!user) return null;
+  if (!user || hidden) return null;
   const tabs = TABS_BY_ROLE[user.role] || [];
 
   return (

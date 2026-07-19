@@ -177,7 +177,7 @@ export default function Login() {
           <div className="mt-4 sm:mt-6">
             <div className="flex items-center gap-3">
               <div className="h-px flex-1 bg-ink-200" />
-              <span className="text-caption text-ink-400">or continue with</span>
+              <span className="text-caption text-ink-400">Or continue with recruiter demo</span>
               <div className="h-px flex-1 bg-ink-200" />
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 sm:gap-3">

@@ -1,5 +1,5 @@
 const SIZES = {
-  sm: { store: 'text-sm', rank: 'text-sm' },
+  sm: { store: 'text-lg', rank: 'text-lg' },
   lg: { store: 'text-xl', rank: 'text-xl' },
 };
 

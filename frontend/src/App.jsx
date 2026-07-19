@@ -116,7 +116,7 @@ export default function App() {
                 <AnimatedRoutes />
               </main>
             </div>
-            <BottomNav />
+            <BottomNav hidden={mobileMenuOpen} />
           </>
         ) : (
           <Routes>

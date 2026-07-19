@@ -204,10 +204,15 @@ export default function AdminStores() {
         transition={{ duration: 0.25 }}
         className="flex flex-wrap items-center justify-between gap-4"
       >
-        <div>
-          <p className="label-micro">Admin / Stores</p>
-          <h1 className="mt-1 text-page-title text-ink-900">Stores</h1>
-          <p className="mt-1 text-body text-ink-500">Manage stores registered on the platform.</p>
+        <div className="flex items-center gap-4">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-input bg-secondary-50 text-secondary-600">
+            <StoreIcon size={22} strokeWidth={2} />
+          </span>
+          <div>
+            <p className="label-micro">Admin / Stores</p>
+            <h1 className="mt-1 text-page-title text-ink-900">Stores</h1>
+            <p className="mt-1 text-body text-ink-500">Manage stores registered on the platform.</p>
+          </div>
         </div>
         <button type="button" className="btn-accent w-full max-sm:h-12 sm:w-auto" onClick={() => setModalOpen(true)}>
           Add store
