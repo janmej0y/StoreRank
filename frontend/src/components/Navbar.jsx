@@ -11,6 +11,12 @@ const ROLE_RING = {
 
 const ROLE_LABEL = { ADMIN: 'Admin', OWNER: 'Store Owner', USER: 'Normal User' };
 
+const GREETING_SUBTITLE = {
+  ADMIN: "Here's what's happening across the platform today.🧑‍💻",
+  OWNER: "Here's how your store is performing.📝",
+  USER: 'Ready to discover and rate more stores?🔍',
+};
+
 const NOTIFICATIONS_BY_ROLE = {
   ADMIN: [
     { icon: Store, text: 'A new store was just registered on the platform.', time: '2h ago' },
@@ -71,7 +77,16 @@ export default function Navbar({ onOpenMobileMenu }) {
         <Menu size={20} strokeWidth={2} />
       </button>
 
-      <div className="flex flex-1 items-center justify-end gap-3">
+      {user && (
+        <div className="hidden min-w-0 flex-1 md:block">
+          <p className="truncate text-sm font-semibold text-ink-900">
+            Welcome back, {user.name?.trim().split(' ')[0]}
+          </p>
+          <p className="truncate text-caption text-ink-500">{GREETING_SUBTITLE[user.role]}</p>
+        </div>
+      )}
+
+      <div className="flex flex-1 items-center justify-end gap-3 md:flex-none">
         <div className="relative" ref={notifRef}>
           <button
             type="button"
