@@ -2,7 +2,15 @@ import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Star, TrendingUp, ShieldCheck, Pencil, Loader2, MessageSquare } from 'lucide-react';
+import {
+  Star,
+  TrendingUp,
+  ShieldCheck,
+  Pencil,
+  Loader2,
+  MessageSquare,
+  ArrowUpDown,
+} from 'lucide-react';
 import { fetchOwnerDashboard, respondToRating, updateOwnerStore } from '../../api/owner';
 import PageBackground from '../../components/PageBackground';
 import { StatCardSkeleton, StackedRowSkeleton } from '../../components/Skeleton';
@@ -12,6 +20,13 @@ import FormField from '../../components/FormField';
 import StarRating from '../../components/StarRating';
 import { validateName, validateEmail, validateAddress, extractApiFieldErrors, extractApiMessage } from '../../utils/validators';
 import { formatDate } from '../../utils/formatDate';
+
+const SORT_OPTIONS = [
+  { value: 'ratedAt', label: 'Date rated' },
+  { value: 'name', label: 'Customer name' },
+  { value: 'email', label: 'Customer email' },
+  { value: 'rating', label: 'Rating' },
+];
 
 function timeAgo(dateString) {
   const diffMs = Date.now() - new Date(dateString).getTime();
@@ -29,14 +44,16 @@ export default function OwnerDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
+  const [sortBy, setSortBy] = useState('ratedAt');
+  const [order, setOrder] = useState('desc');
 
   const load = useCallback(() => {
     setLoading(true);
-    fetchOwnerDashboard({ sortBy: 'ratedAt', order: 'desc' })
+    fetchOwnerDashboard({ sortBy, order })
       .then(({ data: res }) => setData(res))
       .catch((err) => toast.error(extractApiMessage(err, 'Could not load dashboard')))
       .finally(() => setLoading(false));
-  }, []);
+  }, [sortBy, order]);
 
   useEffect(() => {
     load();
@@ -213,7 +230,35 @@ export default function OwnerDashboard() {
 
         {(loading || data?.store) && (
           <div className="mt-6 space-y-4">
-            <h2 className="text-section-title text-ink-800">Customer reviews</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-section-title text-ink-800">Customer reviews</h2>
+              <div className="flex items-center gap-2">
+                <label htmlFor="owner-sort-by" className="sr-only">
+                  Sort reviews by
+                </label>
+                <select
+                  id="owner-sort-by"
+                  className="input h-9 w-auto py-0 text-caption"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  {SORT_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      Sort: {o.label}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setOrder((o) => (o === 'asc' ? 'desc' : 'asc'))}
+                  className="btn-secondary h-9 w-9 p-0"
+                  aria-label={order === 'asc' ? 'Sort ascending' : 'Sort descending'}
+                  title={order === 'asc' ? 'Ascending' : 'Descending'}
+                >
+                  <ArrowUpDown size={15} strokeWidth={2} />
+                </button>
+              </div>
+            </div>
             {loading ? (
               <StackedRowSkeleton rows={3} />
             ) : (
